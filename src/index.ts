@@ -1,16 +1,22 @@
-require("dotenv").config();
 const express = require("express");
-const http = require("http");
-const { Server } = require("socket.io");
+import { Server } from "socket.io";
+import { createServer } from "http";
+const server = createServer();
 const cors = require("cors");
 
 const app = express();
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    credentials: true,
+    methods: ["GET", "POST"],
+  })
+);
 
-const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: process.env.CLIENT_URL || "http://localhost:3000",
+    credentials: true,
     methods: ["GET", "POST"],
   },
 });
