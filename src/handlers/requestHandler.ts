@@ -6,11 +6,9 @@ import { ConversationProps } from "../type/ConversationProps";
 import { MessageProps } from "../type/MessageProps";
 import { NotificationType } from "../type/NotificationProps";
 import { RentalRequestProps } from "../type/RentalProps";
-
 import { emitToRoom } from "../utils/socketEmitter";
-
 import { notificationHandler } from "./notificationHandler";
-import { updateUserAverageResponseTime } from "../services/userService"; // Importer le service
+import { updateUserAverageResponseTime } from "../services/userService";
 
 export const requestHandler = async (
   message: MessageProps,
@@ -42,7 +40,7 @@ export const requestHandler = async (
       );
 
       // Mettre à jour le temps de réponse moyen de l'utilisateur expéditeur
-      await updateUserAverageResponseTime(message.senderId); // Mettre à jour ici
+      await updateUserAverageResponseTime(message.senderId);
     }
   } catch (error) {
     console.error(

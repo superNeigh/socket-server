@@ -11,8 +11,6 @@ export const joinRoomHandler = async (
   roomId: string,
   previousRoomId: string
 ) => {
-  // console.log(`Event "join-room" reçu avec roomId: ${roomId} et previousRoomId: ${previousRoomId}`);
-
   if (previousRoomId) {
     socket.leave(previousRoomId);
   }

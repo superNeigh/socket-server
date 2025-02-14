@@ -2,7 +2,7 @@ import {
   getLastMessagesFromRoom,
   sortRoomMessagesByDate,
 } from "../services/messageService";
-import { updateUserAverageResponseTime } from "../services/userService"; // Import du service
+import { updateUserAverageResponseTime } from "../services/userService";
 import { MessageProps } from "../type/MessageProps";
 
 import { emitToReceiver, emitToRoom } from "../utils/socketEmitter";
