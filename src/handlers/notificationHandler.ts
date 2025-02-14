@@ -45,26 +45,23 @@ export const notificationHandler = async (
     `>>>Envoi de la notification avant le try avec le type ${type} et le corps ${body}`
   );
   try {
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_SOCKET_URL}/api/emitNotification`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          senderId: senderId,
-          recipientId: recipientId,
-          conversationId: conversationId,
-          type,
-          body,
-        }),
-      }
-    );
+    // Appel à l'API backend au lieu de fetch
+    const response = await fetch("/api/emitNotification", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        senderId: senderId,
+        recipientId: recipientId,
+        conversationId: conversationId,
+        type,
+        body,
+      }),
+    });
 
     if (response.status === 200) {
       const notificationData = (await response.json()) as NotificationProps;
-      // console.log(`***200 Notification Data:`, notificationData);
       emitNotification(recipientId, "notification", notificationData);
     } else {
       throw new Error(">>>Échec de la gestion de la notification");
