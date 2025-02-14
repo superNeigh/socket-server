@@ -1,3 +1,4 @@
+import { createNotification } from "../services/notificationService";
 import { NotificationProps, NotificationType } from "../type/NotificationProps";
 import { emitNotification } from "../utils/socketEmitter";
 
@@ -45,24 +46,17 @@ export const notificationHandler = async (
     `>>>Envoi de la notification avant le try avec le type ${type} et le corps ${body}`
   );
   try {
-    // Appel à l'API backend au lieu de fetch
-    const response = await fetch("/api/emitNotification", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        senderId: senderId,
-        recipientId: recipientId,
-        conversationId: conversationId,
-        type,
-        body,
-      }),
-    });
+    const notif = (await createNotification(
+      senderId,
+      recipientId,
+      conversationId,
+      type,
+      body
+    )) as NotificationProps;
 
-    if (response.status === 200) {
-      const notificationData = (await response.json()) as NotificationProps;
-      emitNotification(recipientId, "notification", notificationData);
+    if (notif) {
+      // const notificationData = (await response.json()) as NotificationProps;
+      emitNotification(recipientId, "notification", notif);
     } else {
       throw new Error(">>>Échec de la gestion de la notification");
     }
