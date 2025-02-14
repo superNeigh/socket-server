@@ -1,11 +1,8 @@
+// events/requestStatusHandler.ts
 import { Socket } from "socket.io";
-import {
-  RentalProps,
-  RentalStatus,
-  RequestStatus,
-  UserMatchStatus,
-} from "../type/RentalProps";
+import { RentalProps } from "../type/RentalProps";
 import { ConversationProps } from "../type/ConversationProps";
+import { RentalStatus, RequestStatus, UserMatchStatus } from "@prisma/client";
 
 export const requestStatusHandler = async (
   socket: Socket,
@@ -50,23 +47,22 @@ export const requestStatusHandler = async (
         socket.emit("error", "Invalid status");
         return;
     }
-    // Update rental status and message sentAt
+
+    // Appel à l'API pour mettre à jour le statut de location
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SOCKET_URL}/api/updateRentalStatus`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            rentalId,
-            data: updateReantalData,
-            messageId,
-            room: conversation,
-          }),
-        }
-      );
+      const response = await fetch("/api/updateRentalStatus", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          rentalId,
+          data: updateReantalData,
+          messageId,
+          room: conversation,
+        }),
+      });
+
       if (response.status === 200) {
         console.log(
           `Rental status updated to ${status} for rental ${rentalId}`
