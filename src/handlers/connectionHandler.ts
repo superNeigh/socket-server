@@ -97,44 +97,63 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
         conversationId,
         body?: string
       ) => {
-        if (senderId !== recipientId) {
-          notificationHandler(
-            senderId,
-            recipientId,
-            conversationId,
-            type,
-            body
-          );
+        try {
+          if (senderId !== recipientId) {
+            notificationHandler(
+              senderId,
+              recipientId,
+              conversationId,
+              type,
+              body
+            );
+          }
+        } catch (error) {
+          console.error("Erreur lors de l'envoi de la notification:", error);
+          socket.emit("error", "Server Error");
         }
       }
     );
 
     socket.on("join-room", async (roomId: string, previousRoomId: string) => {
-      joinRoomHandler(socket, roomId, previousRoomId);
-
-      // Mettez à jour les utilisateurs actifs dans le contexte
-      socket
-        .to(roomId)
-        .emit("update-active-users", roomId, socketUserMap.get(socket.id));
+      try {
+        joinRoomHandler(socket, roomId, previousRoomId);
+        socket
+          .to(roomId)
+          .emit("update-active-users", roomId, socketUserMap.get(socket.id));
+      } catch (error) {
+        console.error("Erreur lors de la connexion à la salle:", error);
+        socket.emit("error", "Server Error");
+      }
     });
 
     socket.on("leave-room", (roomId: string) => {
-      socket.leave(roomId);
-
-      // Mettez à jour les utilisateurs actifs dans le contexte
-      socket
-        .to(roomId)
-        .emit(
-          "update-active-users",
-          roomId,
-          socketUserMap.get(socket.id),
-          true
-        );
+      try {
+        socket.leave(roomId);
+        socket
+          .to(roomId)
+          .emit(
+            "update-active-users",
+            roomId,
+            socketUserMap.get(socket.id),
+            true
+          );
+      } catch (error) {
+        console.error("Erreur lors de la déconnexion de la salle:", error);
+        socket.emit("error", "Server Error");
+      }
     });
 
-    socket.on("chat-message", async (message: MessageProps) =>
-      messageHandler(message)
-    );
+    socket.on("chat-message", async (message: MessageProps) => {
+      try {
+        await messageHandler(message);
+      } catch (error) {
+        console.error("Erreur dans le traitement du message:", error);
+        socket.emit(
+          "error",
+          "Une erreur est survenue lors de l'envoi du message."
+        );
+      }
+    });
 
     socket.on(
       "request-message",
@@ -142,7 +161,17 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
         message: MessageProps,
         rental: RentalRequestProps,
         conversation: ConversationProps
-      ) => requestHandler(message, rental, conversation)
+      ) => {
+        try {
+          requestHandler(message, rental, conversation);
+        } catch (error) {
+          console.error("Erreur dans le traitement de la demande:", error);
+          socket.emit(
+            "error",
+            "Une erreur est survenue lors de l'envoi de la demande."
+          );
+        }
+      }
     );
 
     socket.on(
@@ -152,8 +181,23 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
         status: RequestStatus,
         messageId: string,
         conversation: ConversationProps
-      ) =>
-        requestStatusHandler(socket, rentalId, status, messageId, conversation)
+      ) => {
+        try {
+          requestStatusHandler(
+            socket,
+            rentalId,
+            status,
+            messageId,
+            conversation
+          );
+        } catch (error) {
+          console.error("Erreur dans le traitement de la demande:", error);
+          socket.emit(
+            "error",
+            "Une erreur est survenue lors de l'envoi de la demande."
+          );
+        }
+      }
     );
 
     socket.on("disconnect", async () =>
