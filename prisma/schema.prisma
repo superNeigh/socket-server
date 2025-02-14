@@ -1,0 +1,470 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+enum UserRole {
+  ADMIN
+  USER
+}
+
+// ---USER--- //
+model User {
+  id                        String          @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
+  
+  name                      String
+  email                     String          @unique
+  hashedPassword            String
+
+  lastSeen                  DateTime?
+  isOnline                  Boolean         @default(false)
+  
+  profile                   Profile
+  location                  Location?
+  wallet                    Wallet
+  settings                  Settings
+  verification              Verification
+  metrics                   Metrics
+//Relation avec les autres models
+  items                     Item[]
+  reviews                   Review[]
+  reviewsAsReviewer         Review[]      @relation("ReviewerRelation")
+  favorites                 Favorite[]
+
+ // Relations avec les conversations
+  conversationIds           String[]
+  requestedConversations    Conversation[] @relation("Requesters")
+  receivedConversations     Conversation[] @relation("Receivers")
+
+ // Relations avec les messages
+  sentMessages              Message[]      @relation("UserMessagesSent")
+  receivedMessages          Message[]      @relation("UserMessagesReceived")
+
+ // Relations avec les rentals
+  rentalAsOwner             Rental[]       @relation("OwnerRelation")
+  rentalAsRenter            Rental[]       @relation("RenterRelation")
+
+ // Relations avec les notifications
+  notificationsSent         Notification[] @relation("NotificationsSent")
+  notificationsReceived     Notification[] @relation("NotificationsReceived")
+
+ // Relations avec les transactions commandes completées payées 
+  renterTransactions        Transaction[]  @relation("TransactionRenter")
+  ownerTransactions         Transaction[]  @relation("TransactionOwner")
+   // autres relations
+  rewards                   Reward[]
+  // sessions                  Session[]
+  accounts                  Account[]
+  role                      UserRole       @default(USER)
+
+}
+// ---ITEM--- //
+model Item {
+  id                    String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  ownerId               String    @db.ObjectId
+  categoryId            String    @db.ObjectId
+
+  title                 String
+  picture               Picture[]  // tableau de string pour les images
+  price                 Float
+  description           String
+
+  locationDescription   String
+  lat                   Float
+  lng                   Float
+
+// item state
+  isAvailable           Boolean   @default(true)
+  isPaused              Boolean   @default(false)
+  isDeleted             Boolean   @default(false)
+
+  dateUnavailable       DateTime[]
+  dateRenting           DateTime[]
+  dateRequested         DateTime[]
+
+// Relations avec d'autres modèles
+  owner                 User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  category              Category  @relation("CategoryItem", fields: [categoryId], references: [id])
+
+  favoritedBy           Favorite[]
+  conversations         Conversation[]
+  rentals               Rental[]
+  transaction           Transaction[]
+}
+// ---MESSAGE--- //
+model Message {
+  id                  String            @id @default(auto()) @map("_id") @db.ObjectId
+  // createdAt           DateTime          @default(now())
+  sentAt              DateTime
+  timeStamp           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  isRequest           Boolean           @default(true)
+  isChat              Boolean           @default(false)
+  
+  content             String
+  file                String[]
+  senderId            String            @db.ObjectId
+  recipientId         String            @db.ObjectId
+  conversationId      String            @db.ObjectId
+  // toRoomId            String            @db.ObjectId
+  // fromRoomId          String            @db.ObjectId
+  isRead              Boolean           @default(false)
+  isSeen              Boolean           @default(false)
+  // isDeleted           Boolean           @default(false)
+  isResponse          Boolean           @default(false)
+  responseTime        Float             @default(0)
+
+  sender              User              @relation("UserMessagesSent", fields: [senderId], references: [id])
+  recipient           User              @relation("UserMessagesReceived", fields: [recipientId], references: [id])
+
+  conversation        Conversation      @relation("ConversationToMessage", fields: [conversationId], references: [id])
+  // toConversation      Conversation      @relation("ToConversation", fields: [toConversationId], references: [id])
+  // fromConversation    Conversation      @relation("FromConversation", fields: [fromConversationId], references: [id])
+  notifications       Notification[]
+}
+
+// ---CONVERSATION--- //
+model Conversation {
+  id                        String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt                 DateTime    @default(now())
+  lastMessageAt             DateTime    @default(now())
+
+  isNewConversation         Boolean     @default(true)
+  name                      String
+  
+  itemId                    String      @db.ObjectId
+  rentalId                  String?     @db.ObjectId @unique
+  requesterId               String      @db.ObjectId
+  receiverId                String      @db.ObjectId
+  
+  requester                 User        @relation("Requesters", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiver                  User        @relation("Receivers", fields: [receiverId], references: [id], onDelete: Cascade)
+  
+  item                      Item        @relation(fields: [itemId], references: [id])
+  rental                    Rental?     @relation("RentalToConversation", fields: [rentalId], references: [id], onDelete: Cascade)
+  messages                  Message[]   @relation("ConversationToMessage")
+}
+
+// ---RENTAL--- //
+model Rental {
+  id                      String                @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+
+  rentalNumber            String                @unique
+  rentalStatus            RentalStatus          @default(PENDING)
+  requestStatus           RequestStatus         @default(SENT)
+  
+  conversationId          String?               @db.ObjectId @unique
+  itemId                  String                @db.ObjectId
+  renterId                String                @db.ObjectId
+  ownerId                 String                @db.ObjectId
+  
+  renterMatchStatus       UserMatchStatus       
+  ownerMatchStatus        UserMatchStatus                
+    
+  item                    Item                  @relation(fields: [itemId], references: [id])
+  renter                  User                  @relation("RenterRelation", fields: [renterId], references: [id])
+  owner                   User                  @relation("OwnerRelation", fields: [ownerId], references: [id])
+  
+  rentalDates             RentalDates
+  rentalDetails           RentalDetails
+  requestState            RequestState
+  rentalState             RentalState
+ 
+  // relations avec d'autres modèles
+  conversation            Conversation?         @relation("RentalToConversation")
+  reviews                 Review[]           
+  rewards                 Reward[]         
+  notifications           Notification[]       
+  transaction             Transaction[] 
+}
+enum UserMatchStatus {
+  SENT
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELED
+  PAID
+  COMPLETED
+  ITEM_GIVEN
+  ITEM_NOT_GIVEN
+  ITEM_RECEIVED
+  ITEM_NOT_RECEIVED
+  ITEM_IN_PROGRESS
+  ITEM_RETURNED
+  ITEM_NOT_RETURNED
+  ITEM_ACCEPTED
+  ITEM_DECLINED
+}
+
+type RentalDates{
+  startDate               DateTime             // date de début prévue
+  endDate                 DateTime             // date de fin prévue
+  dateItemGiven           DateTime?            // date de début réelle
+  dateItemReturned        DateTime?            // date de fin réelle
+}
+type RentalDetails{
+  pricePerDay             Float                // prix de l'article par jour
+  totalDays               Int                  // Le nombre de jours pour lesquels l'article a été commandé
+  serviceFeePercent       Float                @default(0.2) // Le pourcentage de frais de service pour la commande
+  serviceFee              Float                 // Les frais de service pour la commande
+  discountAmount          Float?               @default(0) // Le prix remisé de l'article
+  discountPercent         Float?               @default(0) // Le pourcentage de remise sur l'article
+  totalPrice              Float                // Le prix total de la commande
+  totalPaid               Float                // Le montant total payé pour la commande
+  
+}
+type RequestState{
+  isPending           Boolean              @default(false)     // true si en attente, false sinon
+  isAccepted          Boolean              @default(false)    // true si accepté, false sinon
+  isDeclined          Boolean              @default(false)    // true si refusé, false sinon
+  isCanceled          Boolean              @default(false)    // true si annulé, false sinon
+  isPaid              Boolean              @default(false)    // true si payé, false sinon
+  isDiscounted        Boolean              @default(false)    // true si remisé, false sinon
+
+}
+type RentalState{
+  isItemGiven         Boolean              @default(false)    // true si donné, false sinon
+  isItemReceived      Boolean              @default(false)    // true si reçu, false sinon
+  
+  isItemInProgress    Boolean              @default(false)    // true si en cours de location, false sinon
+  
+  isItemReturned      Boolean              @default(false)    // true si retourné, false sinon
+  isItemAccepted      Boolean              @default(false)    // true si location acceptée, false sinon
+
+  isItemDeclined      Boolean              @default(false)    // true si location refusée, false sinon
+
+  isCompleted         Boolean              @default(false)    // true si terminé, false sinon
+  // isExtended          Boolean              @default(false)    // true si prolongé, false sinon
+  isDisputed          Boolean              @default(false)    // true si contesté, false sinon
+  isResolved          Boolean              @default(false)    // true si résolu, false sinon
+  isRefunded          Boolean              @default(false)    // true si remboursé, false sinon
+}
+enum RequestStatus {
+  SENT
+  ACCEPTED
+  DECLINED
+  CANCELED
+  PAID
+}
+enum RentalStatus {
+  PENDING
+  UPCOMING
+  IN_PROGRESS
+  ACTION_REQUIRED
+  COMPLETED
+}
+// ---REVIEW--- //
+model Review {
+  id            String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt     DateTime    @default(now())
+  stars         Int         @default(0) // Nombre d'étoiles données à la revue
+  comment       String?     // Commentaire de la revue
+
+  itemId        String      @db.ObjectId // ID de l'article concerné
+  rentalId      String      @db.ObjectId // ID de la location concernée
+  transactionId String      @db.ObjectId // ID de la transaction concernée
+  reviewerId    String      @db.ObjectId // ID de l'utilisateur évaluateur Author of the review
+  revieweeId    String      @db.ObjectId // ID de l'utilisateur évalué
+
+  rental        Rental      @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+  reviewer      User        @relation("ReviewerRelation", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewee      User        @relation(fields: [revieweeId], references: [id], onDelete: Cascade)
+}
+// ---TRANSACTION--- //
+model Transaction {
+  id                  String      @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  paymentIntentId     String         // L'identifiant de l'intention de paiement
+  // stripeChargeId      String?         // L'identifiant de la charge stripe
+  // stripeTransferId    String?         // L'identifiant du transfert stripe
+  // stripePayoutId      String?         // L'identifiant du paiement stripe
+  // stripeRefundId      String?         // L'identifiant du remboursement stripe
+
+  status              TransactionStatus
+  amountEarned        Float? // montant gagné par le propriétaire
+  amountPaid          Float? // montant payé par le loueur
+  amountFee           Float? // montant des frais de service
+  pointsEarned        Int?   // points gagnés par le propriétaire       
+  amountRefunded      Float? // montant remboursé
+  amountWithdrawn     Float? // montant retiré
+
+  rentalId            String      @db.ObjectId
+  itemId              String      @db.ObjectId
+  renterId            String      @db.ObjectId
+  ownerId             String      @db.ObjectId
+
+  rental            Rental      @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+  item              Item        @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  renter            User        @relation("TransactionRenter", fields: [renterId], references: [id], onDelete: Cascade)
+  owner             User        @relation("TransactionOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+ }
+enum TransactionStatus {
+  IN_PROGRESS
+  COMPLETED
+ }
+ 
+// ---NOTIFICATION--- //
+model Notification {
+  id                String       @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  type              NotificationType
+  body              String
+  isSeen            Boolean      @default(false)
+  
+  conversationId    String?      @db.ObjectId
+  senderId          String       @db.ObjectId // userId qui envoie la notification
+  recipientId       String       @db.ObjectId // userId qui reçoit la notification
+  rentalId          String?      @db.ObjectId
+  chatMessageId     String?      @db.ObjectId
+
+  sender            User         @relation("NotificationsSent", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient         User         @relation("NotificationsReceived", fields: [recipientId], references: [id], onDelete: Cascade)
+  chatMessage       Message?     @relation(fields: [chatMessageId], references: [id], onDelete: Cascade)
+  rental            Rental?      @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+}
+enum NotificationType {
+  MESSAGE 
+  RENTAL 
+  RENTALSTATUS 
+  RENTALPAYMENT
+  REVIEW 
+  REWARD
+  RENTER
+  OWNER
+}
+// ---CATEGORY--- //
+model Category {
+  id                String        @id @default(auto()) @map("_id") @db.ObjectId
+  name              String
+  image             String?
+  parentId          String?       @db.ObjectId
+
+  parent            Category?     @relation("CategoryToCategory", fields: [parentId], references: [id], onDelete: NoAction, onUpdate: NoAction)
+  children          Category[]    @relation("CategoryToCategory")
+  items             Item[]        @relation("CategoryItem")
+}
+// ---FAVORITE--- //
+model Favorite {
+  id              String      @id  @default(auto()) @map("_id") @db.ObjectId
+  userId          String      @db.ObjectId
+  itemId          String      @db.ObjectId
+  
+  user            User        @relation(fields: [userId], references: [id])
+  item            Item        @relation(fields: [itemId], references: [id])
+}
+// --- REWARD --- //
+model Reward {
+  id            String        @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt     DateTime      @default(now())
+  points        Int           @default(0)
+  comment       String
+  
+  rentalId      String        @db.ObjectId
+  renterId      String        @db.ObjectId  
+  
+  renter        User          @relation(fields: [renterId], references: [id])
+  rental        Rental        @relation(fields: [rentalId], references: [id])
+}
+// --- USER TYPE --- //
+type Profile {
+  firstName               String
+  lastName                String
+  image                   String?
+  rating                  Int         @default(0)
+  numberOfReviews         Int         @default(0)
+  
+  mobilePhone             String?
+  bio                     String?
+}
+type Location {
+  city                    String?
+  country                 String?
+  
+  address                 String?
+  addressLat              Float?
+  addressLng              Float?
+  
+  postalCode              String?
+  postalCodeLat           Float?
+  postalCodeLng           Float?
+}
+type Settings{
+  emailNotification       Boolean   @default(true)
+  mobileNotification      Boolean   @default(true)
+  holidayMode             Boolean   @default(false)
+
+}
+type Verification {
+  emailVerified               Boolean   @default(false)
+  mobileVerified              Boolean   @default(false)
+  identityVerified            Boolean   @default(false)
+  certified                   Boolean   @default(false)
+  emailVerificationCode       String?
+  mobileVerificationCode      String?
+  expiresAt                   DateTime?
+}
+type Wallet{
+  balance           Float   @default(0)
+  pendingBalance    Float   @default(0)
+  totalRewards      Float   @default(0)
+
+  stripeAccID       String?
+  stripeAccStatus   String?
+  currency          String  @default("CAD")
+
+  // stripeToken       String?
+}
+type Metrics {
+  numberOfConnections   Int     @default(0)
+  responseTime          Float   @default(0)
+  responseRate          Float   @default(0)
+}
+// --- ACCOUNT --- //
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model VerificationCode {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  identifier        String
+  token             String
+  expiresAt         DateTime
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+// ---PICTURE--- //
+model Picture {
+  id          String      @id @default(auto()) @map("_id") @db.ObjectId
+  url         String
+  itemId      String      @db.ObjectId
+
+  item        Item        @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}

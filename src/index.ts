@@ -1,40 +1,23 @@
-const express = require("express");
-import { Server } from "socket.io";
+import express from "express";
 import { createServer } from "http";
-const server = createServer();
-const cors = require("cors");
+import { setupSocket } from "./config/socket";
+import cors from "cors";
 
 const app = express();
+const server = createServer(app);
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
+    origin: "http://localhost:3000",
     credentials: true,
     methods: ["GET", "POST"],
   })
 );
 
-const io = new Server(server, {
-  cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:3000",
-    credentials: true,
-    methods: ["GET", "POST"],
-  },
-});
-
-io.on("connection", (socket) => {
-  console.log(`⚡: Un utilisateur connecté ${socket.id}`);
-
-  socket.on("chat-message", (msg) => {
-    console.log("Message reçu :", msg);
-    io.emit("chat-message", msg);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("Utilisateur déconnecté");
-  });
-});
+// Configuration WebSocket
+setupSocket(server);
 
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
-  console.log(`🚀 Serveur WebSocket lancé sur le port ${PORT}`);
+  console.log(`🚀 Serveur lancé sur le port ${PORT}`);
 });
