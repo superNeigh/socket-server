@@ -7,7 +7,7 @@ const SECRET_KEY = process.env.NEXTAUTH_SECRET as string;
 export const setupSocket = (server: any) => {
   const io = new Server(server, {
     cors: {
-      origin: "http://localhost:3000",
+      origin: process.env.CLIENT_URL as string,
       credentials: true,
     },
     pingTimeout: 60000,
