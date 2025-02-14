@@ -1,49 +1,40 @@
 import { Socket } from "socket.io";
+import db from "../services/db";
 import { emitToAll } from "../utils/socketEmitter";
 
 export const disconnectHandler = async (
   socket: Socket,
   socketUserMap: Map<string, string>
 ) => {
-  console.log("***User disconnected", socket.id);
   const userId = socketUserMap.get(socket.id);
 
   if (userId) {
+    // Suppression de l'utilisateur dans la Map
     socketUserMap.delete(socket.id);
-    console.log(`***User ${userId} disconnected`);
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SOCKET_URL}/api/updateUserStatus`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
+    console.log(`***User ${userId} disconnected from socket ${socket.id}`);
+
+    // Vérification s'il y a encore des connexions ouvertes pour cet utilisateur
+    const remainingSockets = [...socketUserMap.values()].filter(
+      (id) => id === userId
+    ).length;
+
+    if (remainingSockets === 0) {
+      // Aucune autre connexion active pour cet utilisateur, mettre à jour le statut
+      try {
+        const updatedUser = await db.user.update({
+          where: { id: userId },
+          data: {
+            isOnline: false,
+            lastSeen: new Date(),
           },
-          body: JSON.stringify({
-            userId: userId,
-            data: {
-              isOnline: false,
-              lastSeen: new Date(),
-            },
-          }),
-        }
-      );
-
-      if (response.status === 200) {
+        });
         console.log(`***User ${userId} is offline in the database`);
-        console.log(">>> SocketUserMap:", socketUserMap);
-      } else {
-        throw new Error("Échec de la mise à jour du statut de l'utilisateur");
+        emitToAll("get-current-user");
+      } catch (error) {
+        console.error("Error while updating user status on disconnect:", error);
       }
-
-      emitToAll("get-current-user");
-    } catch (error) {
-      console.error(
-        "Erreur lors de la mise à jour du statut de l'utilisateur lors de la déconnexion:",
-        error
-      );
     }
   } else {
-    console.error("Aucun utilisateur trouvé pour l'ID de socket:", socket.id);
+    console.log(`No user found for socket ID: ${socket.id}`);
   }
 };
