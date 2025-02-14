@@ -2,6 +2,7 @@ import {
   getLastMessagesFromRoom,
   sortRoomMessagesByDate,
 } from "../services/messageService";
+import { updateUserAverageResponseTime } from "../services/userService"; // Import du service
 import { MessageProps } from "../type/MessageProps";
 
 import { emitToReceiver, emitToRoom } from "../utils/socketEmitter";
@@ -25,6 +26,8 @@ export const messageHandler = async (message: MessageProps) => {
     let roomMessages = await getLastMessagesFromRoom(roomId);
     roomMessages = await sortRoomMessagesByDate(roomMessages);
     emitToRoom(roomId, "get-room-messages", roomMessages);
+
+    await updateUserAverageResponseTime(message.senderId);
 
     emitToReceiver(message.recipientId, "get-current-user");
   } catch (error) {

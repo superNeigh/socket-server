@@ -10,6 +10,7 @@ import { RentalRequestProps } from "../type/RentalProps";
 import { emitToRoom } from "../utils/socketEmitter";
 
 import { notificationHandler } from "./notificationHandler";
+import { updateUserAverageResponseTime } from "../services/userService"; // Importer le service
 
 export const requestHandler = async (
   message: MessageProps,
@@ -32,12 +33,16 @@ export const requestHandler = async (
       emitToRoom(roomId, "get-room-messages", sortedMessages);
       console.log(">>>>> 6.Emitted get-room-messages event to room:", roomId);
 
+      // Appel de notificationHandler pour envoyer la notification
       await notificationHandler(
         message.senderId,
         message.recipientId,
         message.conversationId,
         NotificationType.RENTAL
       );
+
+      // Mettre à jour le temps de réponse moyen de l'utilisateur expéditeur
+      await updateUserAverageResponseTime(message.senderId); // Mettre à jour ici
     }
   } catch (error) {
     console.error(
