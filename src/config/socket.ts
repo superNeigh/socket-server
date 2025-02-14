@@ -14,11 +14,13 @@ export const setupSocket = (server: any) => {
     pingInterval: 25000,
   });
 
+  global.io = io;
+
   io.on("connection", (socket) => {
     console.log(`⚡: Un utilisateur connecté ${socket.id}`);
 
-    // Récupérer le token envoyé via la connexion WebSocket (query params)
-    const token = socket.handshake.query.token as string;
+    // Récupérer le token envoyé via la connexion WebSocket auth
+    const token = socket.handshake.auth.token as string;
 
     // Vérifier la validité du token JWT
     if (!token) {
