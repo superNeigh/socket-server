@@ -10,7 +10,7 @@ const cors_1 = __importDefault(require("cors"));
 const app = (0, express_1.default)();
 const server = (0, http_1.createServer)(app);
 app.use((0, cors_1.default)({
-    origin: "http://localhost:3000",
+    origin: process.env.CLIENT_URL,
     credentials: true,
     methods: ["GET", "POST"],
 }));
