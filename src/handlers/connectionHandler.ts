@@ -14,6 +14,7 @@ import { ConversationProps } from "../type/ConversationProps";
 import { MessageProps } from "../type/MessageProps";
 import { NotificationType } from "../type/NotificationProps";
 import { RentalRequestProps, RequestStatus } from "../type/RentalProps";
+import db from "../services/db";
 
 const socketUserMap = new Map<string, string>();
 
@@ -54,37 +55,29 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
 
     console.log(`***Socket Join avec ID utilisateur: ${currentUserId}`);
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_SOCKET_URL}/api/updateUserStatus`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            userId: currentUserId,
-            data: {
-              isOnline: true,
-              lastSeen: new Date(),
-            },
-          }),
-        }
-      );
+      // Mise à jour du statut de l'utilisateur lors de la connexion
+      const updatedUser = await db.user.update({
+        where: { id: currentUserId },
+        data: {
+          isOnline: true,
+          lastSeen: new Date(),
+        },
+      });
+      console.log(`***User ${currentUserId} is online in the database`);
 
-      if (response.status === 200) {
-        console.log(`***User ${currentUserId} is online in the database`);
-      } else {
-        throw new Error("Échec de la mise à jour du statut de l'utilisateur");
-      }
-
+      // Joindre la room avec l'ID utilisateur pour le chat
       socket.join(currentUserId);
+
+      // Mettre à jour tous les autres clients
       emitToAll("get-current-user");
     } catch (error) {
       console.error(
-        "Échec de la mise à jour du statut de l'utilisateur:",
+        "Échec de la mise à jour du statut utilisateur dans la DB",
         error
       );
-      socket.disconnect(true);
+    } finally {
+      socket.join(currentUserId);
+      emitToAll("get-current-user");
     }
 
     // Gestion des événements
