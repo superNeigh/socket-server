@@ -1,8 +1,8 @@
-// events/requestStatusHandler.ts
 import { Socket } from "socket.io";
 import { RentalProps } from "../type/RentalProps";
 import { ConversationProps } from "../type/ConversationProps";
 import { RentalStatus, RequestStatus, UserMatchStatus } from "@prisma/client";
+import { updateRentalStatus } from "../services/rentalService";
 
 export const requestStatusHandler = async (
   socket: Socket,
@@ -50,34 +50,27 @@ export const requestStatusHandler = async (
 
     // Appel à l'API pour mettre à jour le statut de location
     try {
-      const response = await fetch("/api/updateRentalStatus", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          rentalId,
-          data: updateReantalData,
-          messageId,
-          room: conversation,
-        }),
-      });
+      const rental = (await updateRentalStatus(
+        rentalId,
+        updateReantalData,
+        messageId,
+        conversation
+      )) as RentalProps;
 
-      if (response.status === 200) {
+      if (rental) {
         console.log(
           `Rental status updated to ${status} for rental ${rentalId}`
         );
-        const updatedRental = (await response.json()) as RentalProps;
+
         socket.to(conversation.id).emit("request-status-updated", {
-          rentalId: updatedRental.id,
+          rentalId: rental.id,
           newStatus: status,
-          newRental: updatedRental,
+          newRental: rental,
           messageId,
         });
       } else {
         console.error(
-          `Error updating rental status to ${status}:`,
-          response.statusText
+          `Failed to update rental status to ${status} for rental ${rentalId}`
         );
         socket.emit("error", `Failed to update rental status to ${status}`);
       }
