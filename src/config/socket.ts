@@ -3,6 +3,9 @@ import { connectionHandler } from "../handlers/connectionHandler";
 import jwt from "jsonwebtoken";
 
 const SECRET_KEY = process.env.NEXTAUTH_SECRET as string;
+declare global {
+  var io: Server | undefined;
+}
 
 export const setupSocket = (server: any) => {
   const io = new Server(server, {
@@ -16,12 +19,12 @@ export const setupSocket = (server: any) => {
 
   global.io = io;
 
-  io.on("connection", (socket) => {
+  global.io.on("connection", (socket) => {
     console.log(`⚡: Un utilisateur connecté ${socket.id}`);
 
     // Récupérer le token envoyé via la connexion WebSocket auth
     const token = socket.handshake.auth.token as string;
-
+    console.log("Token reçu :", token);
     // Vérifier la validité du token JWT
     if (!token) {
       console.log("Token non trouvé");
