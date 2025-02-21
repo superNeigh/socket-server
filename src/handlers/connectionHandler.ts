@@ -53,7 +53,7 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
     socketUserMap.set(socket.id, currentUserId);
     console.log(`>>> SocketUserMap:`, socketUserMap);
 
-    console.log(`***Socket Join avec ID utilisateur: ${currentUserId}`);
+    // console.log(`***Socket Join avec ID utilisateur: ${currentUserId}`);
     try {
       // Mise à jour du statut de l'utilisateur lors de la connexion
       const updatedUser = await db.user.update({

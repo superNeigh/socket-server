@@ -26,10 +26,10 @@ export const setupSocket = (server: any) => {
   global.io = io;
 
   io.on("connection", (socket) => {
-    console.log(`⚡: Un utilisateur connecté ${socket.id}`);
+    // console.log(`⚡: Un utilisateur connecté ${socket.id}`);
 
     const token = socket.handshake.auth.token as string;
-    console.log("Token reçu :", token);
+    // console.log("Token reçu :", token);
 
     if (!token) {
       console.log("Token manquant");
@@ -47,7 +47,7 @@ export const setupSocket = (server: any) => {
         return;
       }
 
-      console.log("Utilisateur authentifié avec ID:", decoded.id);
+      // console.log("Utilisateur authentifié avec ID:", decoded.id);
 
       // Gérer la connexion de l'utilisateur
       connectionHandler(socket, decoded.id as string);
