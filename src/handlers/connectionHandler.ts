@@ -8,7 +8,7 @@ import { requestHandler } from "./requestHandler";
 import { disconnectHandler } from "./disconnectHandler";
 
 import { notificationHandler } from "./notificationHandler";
-import { requestStatusHandler } from "./rentalStatusHandler";
+import { requestStatusHandler } from "./requestStatusHandler";
 import { emitToAll } from "../utils/socketEmitter";
 import { ConversationProps } from "../type/ConversationProps";
 import { MessageProps } from "../type/MessageProps";
