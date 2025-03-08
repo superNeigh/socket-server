@@ -8,6 +8,9 @@ const app = express();
 app.use(cors());
 
 const SECRET_KEY = process.env.JWT_SECRET as string;
+declare global {
+  var io: Server | undefined;
+}
 
 export const setupSocket = (server: any) => {
   const io = new Server(server, {
@@ -18,7 +21,7 @@ export const setupSocket = (server: any) => {
     pingTimeout: 60000,
     pingInterval: 25000,
   });
-
+  global.io = io;
   io.on("connection", (socket) => {
     console.log(`⚡: Un utilisateur connecté ${socket.id}`);
 
