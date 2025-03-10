@@ -12,31 +12,31 @@ export const requestStatusHandler = async (
   conversation: ConversationProps
 ) => {
   try {
-    let updateReantalData = {};
+    let updateRentalData = {};
     switch (status) {
       case "ACCEPTED":
-        updateReantalData = {
+        updateRentalData = {
           requestStatus: RequestStatus.ACCEPTED,
           ownerMatchStatus: UserMatchStatus.ACCEPTED,
           requestState: { update: { isAccepted: true, isPending: false } },
         };
         break;
       case "DECLINED":
-        updateReantalData = {
+        updateRentalData = {
           requestStatus: RequestStatus.DECLINED,
           ownerMatchStatus: UserMatchStatus.DECLINED,
           requestState: { update: { isDeclined: true, isPending: false } },
         };
         break;
       case "CANCELED":
-        updateReantalData = {
+        updateRentalData = {
           requestStatus: RequestStatus.CANCELED,
           renterMatchStatus: UserMatchStatus.CANCELED,
           requestState: { update: { isCanceled: true, isPending: false } },
         };
         break;
       case "PAID":
-        updateReantalData = {
+        updateRentalData = {
           requestStatus: RequestStatus.PAID,
           rentalStatus: RentalStatus.UPCOMING,
           renterMatchStatus: UserMatchStatus.PAID,
@@ -52,7 +52,7 @@ export const requestStatusHandler = async (
     try {
       const rental = (await updateRentalStatus(
         rentalId,
-        updateReantalData,
+        updateRentalData,
         messageId,
         conversation
       )) as RentalProps;
