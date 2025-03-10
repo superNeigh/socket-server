@@ -23,8 +23,8 @@ export const emitNotification = (
     console.log(
       ">>>Emitted notification with event",
       event,
-      "and data",
-      notification
+      "and data"
+      // notification
     );
   } else {
     console.error(
@@ -55,8 +55,8 @@ export const emitToRoom = (
       roomId,
       "with event",
       event,
-      "and messages",
-      messages
+      "and messages"
+      // messages
     );
   } else {
     console.error(
