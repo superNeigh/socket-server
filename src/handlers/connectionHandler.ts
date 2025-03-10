@@ -20,13 +20,13 @@ const socketUserMap = new Map<string, string>();
 
 export const connectionHandler = async (socket: Socket, userId: string) => {
   console.log(
-    `>>>1. Nouvelle connexion de socket: ${socket.id} depuis ${socket.handshake.address}`
+    `⚡ [connectionHandler] >>>1. Nouvelle connexion de socket: ${socket.id} depuis ${socket.handshake.address}`
   );
 
   try {
     const token = socket.handshake.auth.token;
     if (!token) {
-      console.log("Token non trouvé");
+      console.log("❌ [connectionHandler] Token non trouvé");
       socket.emit("error", "Unauthorized");
       socket.disconnect();
       return;
@@ -34,7 +34,7 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
 
     const currentUserId = userId;
     if (!currentUserId) {
-      console.error("ID utilisateur non trouvé");
+      console.error("❌ [connectionHandler] ID utilisateur non trouvé");
       socket.emit("error", "Unauthorized");
       socket.disconnect();
       return;
@@ -51,9 +51,7 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
     }
 
     socketUserMap.set(socket.id, currentUserId);
-    console.log(`>>> SocketUserMap:`, socketUserMap);
-
-    // console.log(`***Socket Join avec ID utilisateur: ${currentUserId}`);
+    console.log(`🗺️ [connectionHandler] >>> SocketUserMap:`, socketUserMap);
     try {
       // Mise à jour du statut de l'utilisateur lors de la connexion
       const updatedUser = await db.user.update({
@@ -63,7 +61,9 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
           lastSeen: new Date(),
         },
       });
-      console.log(`***User ${currentUserId} is online in the database`);
+      console.log(
+        `✅ [connectionHandler] ***User ${currentUserId} is online in the database`
+      );
 
       // Joindre la room avec l'ID utilisateur pour le chat
       socket.join(currentUserId);
@@ -72,7 +72,7 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
       emitToAll("get-current-user");
     } catch (error) {
       console.error(
-        "Échec de la mise à jour du statut utilisateur dans la DB",
+        "❌ [connectionHandler] Échec de la mise à jour du statut utilisateur dans la DB",
         error
       );
     } finally {
@@ -101,24 +101,37 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
             );
           }
         } catch (error) {
-          console.error("Erreur lors de l'envoi de la notification:", error);
+          console.error(
+            "❌ [connectionHandler] Erreur lors de l'envoi de la notification:",
+            error
+          );
           socket.emit("error", "Server Error");
         }
       }
     );
 
-    socket.on("join-room", async (roomId: string, previousRoomId: string) => {
+    // Événement pour rejoindre une salle
+    socket.on("join-room", async (roomId: string) => {
       try {
-        joinRoomHandler(socket, roomId, previousRoomId);
+        console.log(
+          `🔄 [connectionHandler] ***User ${currentUserId} is joining room ${roomId}`
+        );
+        // Appel à joinRoomHandler avec socketUserMap
+        joinRoomHandler(socket, roomId);
+        // Mise à jour des utilisateurs actifs
         socket
           .to(roomId)
           .emit("update-active-users", roomId, socketUserMap.get(socket.id));
       } catch (error) {
-        console.error("Erreur lors de la connexion à la salle:", error);
+        console.error(
+          "❌ [connectionHandler] Erreur lors de la connexion à la salle:",
+          error
+        );
         socket.emit("error", "Server Error");
       }
     });
 
+    // Événement pour quitter une salle
     socket.on("leave-room", (roomId: string) => {
       try {
         socket.leave(roomId);
@@ -131,7 +144,10 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
             true
           );
       } catch (error) {
-        console.error("Erreur lors de la déconnexion de la salle:", error);
+        console.error(
+          "❌ [connectionHandler] Erreur lors de la déconnexion de la salle:",
+          error
+        );
         socket.emit("error", "Server Error");
       }
     });
@@ -140,7 +156,10 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
       try {
         await messageHandler(message);
       } catch (error) {
-        console.error("Erreur dans le traitement du message:", error);
+        console.error(
+          "❌ [connectionHandler] Erreur dans le traitement du message:",
+          error
+        );
         socket.emit(
           "error",
           "Une erreur est survenue lors de l'envoi du message."
@@ -158,7 +177,10 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
         try {
           requestHandler(message, rental, conversation);
         } catch (error) {
-          console.error("Erreur dans le traitement de la demande:", error);
+          console.error(
+            "❌ [connectionHandler] Erreur dans le traitement de la demande:",
+            error
+          );
           socket.emit(
             "error",
             "Une erreur est survenue lors de l'envoi de la demande."
@@ -184,7 +206,10 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
             conversation
           );
         } catch (error) {
-          console.error("Erreur dans le traitement de la demande:", error);
+          console.error(
+            "❌ [connectionHandler] Erreur dans le traitement de la demande:",
+            error
+          );
           socket.emit(
             "error",
             "Une erreur est survenue lors de l'envoi de la demande."
@@ -193,11 +218,17 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
       }
     );
 
-    socket.on("disconnect", async () =>
-      disconnectHandler(socket, socketUserMap)
-    );
+    socket.on("disconnect", async () => {
+      console.log(
+        `🔴 [connectionHandler] ***User ${currentUserId} disconnected`
+      );
+      disconnectHandler(socket, socketUserMap);
+    });
   } catch (error) {
-    console.error("Erreur lors de la gestion de la connexion:", error);
+    console.error(
+      "❌ [connectionHandler] Erreur lors de la gestion de la connexion:",
+      error
+    );
     socket.emit("error", "Server Error");
     socket.disconnect();
   }
