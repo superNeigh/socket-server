@@ -100,7 +100,7 @@ export const createNotification = async (
     });
 
     console.info("Notification created successfully", {
-      notification: newNotification,
+      // notification: newNotification,
     });
     return newNotification as NotificationProps;
   } catch (error) {
