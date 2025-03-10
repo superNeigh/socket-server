@@ -113,15 +113,11 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
     // Événement pour rejoindre une salle
     socket.on("join-room", async (roomId: string) => {
       try {
+        // Appel à joinRoomHandler avec socketUserMap
+        joinRoomHandler(socket, roomId);
         console.log(
           `🔄 [connectionHandler] ***User ${currentUserId} is joining room ${roomId}`
         );
-        // Appel à joinRoomHandler avec socketUserMap
-        joinRoomHandler(socket, roomId);
-        // Mise à jour des utilisateurs actifs
-        socket
-          .to(roomId)
-          .emit("update-active-users", roomId, socketUserMap.get(socket.id));
       } catch (error) {
         console.error(
           "❌ [connectionHandler] Erreur lors de la connexion à la salle:",
@@ -135,14 +131,6 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
     socket.on("leave-room", (roomId: string) => {
       try {
         socket.leave(roomId);
-        socket
-          .to(roomId)
-          .emit(
-            "update-active-users",
-            roomId,
-            socketUserMap.get(socket.id),
-            true
-          );
       } catch (error) {
         console.error(
           "❌ [connectionHandler] Erreur lors de la déconnexion de la salle:",

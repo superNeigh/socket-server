@@ -8,12 +8,12 @@ import { MessageProps } from "../type/MessageProps";
 
 export const joinRoomHandler = async (
   socket: Socket,
-  roomId: string,
-  previousRoomId: string
+  roomId: string
+  // previousRoomId: string
 ) => {
-  if (previousRoomId) {
-    socket.leave(previousRoomId);
-  }
+  // if (previousRoomId) {
+  //   socket.leave(previousRoomId);
+  // }
 
   socket.join(roomId);
   let messages = await getLastMessagesFromRoom(roomId);
