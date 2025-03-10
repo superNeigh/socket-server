@@ -11,7 +11,9 @@ export const disconnectHandler = async (
   if (userId) {
     // Suppression de l'utilisateur dans la Map
     socketUserMap.delete(socket.id);
-    console.log(`***User ${userId} disconnected from socket ${socket.id}`);
+    console.log(
+      `🔴 [disconnectHandler] ***User ${userId} disconnected from socket ${socket.id}`
+    );
 
     // Vérification s'il y a encore des connexions ouvertes pour cet utilisateur
     const remainingSockets = [...socketUserMap.values()].filter(
@@ -28,13 +30,24 @@ export const disconnectHandler = async (
             lastSeen: new Date(),
           },
         });
-        console.log(`***User ${userId} is offline in the database`);
+        console.log(
+          `✅ [disconnectHandler] ***User ${userId} is offline in the database`
+        );
         emitToAll("get-current-user");
       } catch (error) {
-        console.error("Error while updating user status on disconnect:", error);
+        console.error(
+          "❌ [disconnectHandler] Error while updating user status on disconnect:",
+          error
+        );
       }
+    } else {
+      console.log(
+        `🟢 [disconnectHandler] ***User ${userId} still has active connections`
+      );
     }
   } else {
-    console.log(`No user found for socket ID: ${socket.id}`);
+    console.log(
+      `❓ [disconnectHandler] No user found for socket ID: ${socket.id}`
+    );
   }
 };
