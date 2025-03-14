@@ -128,6 +128,8 @@ export type RentalStatePops = {
   isItemAccepted: boolean;
   isItemDeclined: boolean;
 
+  isActionRequired: boolean;
+
   isCompleted: boolean;
   isDisputed: boolean;
   isResolved: boolean;

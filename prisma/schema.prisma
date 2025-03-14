@@ -240,6 +240,8 @@ type RentalState{
   isItemReturned      Boolean              @default(false)    // true si retourné, false sinon
   isItemAccepted      Boolean              @default(false)    // true si location acceptée, false sinon
 
+  isActionRequired    Boolean              @default(false)    // true si action requise, false sinon
+ 
   isItemDeclined      Boolean              @default(false)    // true si location refusée, false sinon
 
   isCompleted         Boolean              @default(false)    // true si terminé, false sinon
