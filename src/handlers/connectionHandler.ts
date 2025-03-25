@@ -1,20 +1,18 @@
+import db from "../services/db";
 import { Socket } from "socket.io";
-
 import { joinRoomHandler } from "./joinRoomHandler";
-
 import { messageHandler } from "./messageHandler";
-
 import { requestHandler } from "./requestHandler";
 import { disconnectHandler } from "./disconnectHandler";
-
 import { notificationHandler } from "./notificationHandler";
 import { requestStatusHandler } from "./requestStatusHandler";
 import { emitToAll } from "../utils/socketEmitter";
 import { ConversationProps } from "../type/ConversationProps";
 import { MessageProps } from "../type/MessageProps";
 import { NotificationType } from "../type/NotificationProps";
-import { RentalRequestProps, RequestStatus } from "../type/RentalProps";
-import db from "../services/db";
+import { RentalRequestProps } from "../type/RentalProps";
+import { rentalStatusHandler } from "./rentalStatusHandler";
+import { RentalStatus, RequestStatus } from "@prisma/client";
 
 const socketUserMap = new Map<string, string>();
 
@@ -128,17 +126,17 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
     });
 
     // Événement pour quitter une salle
-    socket.on("leave-room", (roomId: string) => {
-      try {
-        socket.leave(roomId);
-      } catch (error) {
-        console.error(
-          "❌ [connectionHandler] Erreur lors de la déconnexion de la salle:",
-          error
-        );
-        socket.emit("error", "Server Error");
-      }
-    });
+    // socket.on("leave-room", (roomId: string) => {
+    //   try {
+    //     socket.leave(roomId);
+    //   } catch (error) {
+    //     console.error(
+    //       "❌ [connectionHandler] Erreur lors de la déconnexion de la salle:",
+    //       error
+    //     );
+    //     socket.emit("error", "Server Error");
+    //   }
+    // });
 
     socket.on("chat-message", async (message: MessageProps) => {
       try {
@@ -193,6 +191,30 @@ export const connectionHandler = async (socket: Socket, userId: string) => {
             messageId,
             conversation
           );
+        } catch (error) {
+          console.error(
+            "❌ [connectionHandler] Erreur dans le traitement de la demande:",
+            error
+          );
+          socket.emit(
+            "error",
+            "Une erreur est survenue lors de l'envoi de la demande."
+          );
+        }
+      }
+    );
+
+    socket.on(
+      "update-rental-status",
+      async (transactionId: string, rentalId: string, status: RentalStatus) => {
+        try {
+          console.log(
+            ">>>  Received update-rental-status event:",
+            transactionId,
+            rentalId,
+            status
+          );
+          rentalStatusHandler(socket, transactionId, rentalId, status);
         } catch (error) {
           console.error(
             "❌ [connectionHandler] Erreur dans le traitement de la demande:",

@@ -2,7 +2,7 @@ import { Socket } from "socket.io";
 import { RentalProps } from "../type/RentalProps";
 import { ConversationProps } from "../type/ConversationProps";
 import { RentalStatus, RequestStatus, UserMatchStatus } from "@prisma/client";
-import { updateRentalStatus } from "../services/rentalService";
+import { updateRequestStatus } from "../services/requestService";
 
 export const requestStatusHandler = async (
   socket: Socket,
@@ -50,7 +50,7 @@ export const requestStatusHandler = async (
 
     // Appel à l'API pour mettre à jour le statut de location
     try {
-      const rental = (await updateRentalStatus(
+      const rental = (await updateRequestStatus(
         rentalId,
         updateRentalData,
         messageId,
