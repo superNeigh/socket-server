@@ -75,20 +75,20 @@ export const emitToSender = (senderId: string, event: string) => {
   }
 };
 
-export const broadcastToRoom = (socket: Socket, event: string, data: any) => {
-  if (global.io) {
-    socket.broadcast.to(data.room).emit(event, data);
-    console.log(
-      "✅ Broadcasted to room",
-      data.room,
-      "with event",
-      event,
-      "and data",
-      data
-    );
-  } else {
-    console.error(
-      "🛑 Attempted to broadcast event without an initialized Socket.io server."
-    );
-  }
-};
+// export const broadcastToRoom = (socket: Socket, event: string, data: any) => {
+//   if (global.io) {
+//     socket.broadcast.to(data.room).emit(event, data);
+//     console.log(
+//       "✅ Broadcasted to room",
+//       data.room,
+//       "with event",
+//       event,
+//       "and data",
+//       data
+//     );
+//   } else {
+//     console.error(
+//       "🛑 Attempted to broadcast event without an initialized Socket.io server."
+//     );
+//   }
+// };
