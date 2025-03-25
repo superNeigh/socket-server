@@ -1,10 +1,15 @@
-import { ConversationProps } from "./ConversationProps";
-import { ItemProps } from "./ItemProps";
+import {
+  Conversation,
+  Favorite,
+  Item,
+  Notification,
+  Review,
+} from "@prisma/client";
 import { MessageProps } from "./MessageProps";
 import { RentalProps } from "./RentalProps";
-import { ReviewProps } from "./ReviewProps";
 import { RewardProps } from "./RewardProps";
 import { TransactionProps } from "./TransactionProps";
+import { ConversationProps } from "./ConversationProps";
 
 export type UserCardProps = {
   id: string;
@@ -12,9 +17,9 @@ export type UserCardProps = {
   email?: string;
   profile: {
     image: string | null;
-    rating: number;
-    numberOfReviews: number;
     mobilePhone?: string | null;
+    averageRating: number;
+    totalReviews: number;
   };
 };
 export type UserProps = {
@@ -32,10 +37,10 @@ export type UserProps = {
   verification: VerificationProps;
   metrics: MetricsProps;
 
-  items?: ItemProps[] | null;
-  reviews?: ReviewProps[] | null;
-  reviewsAsReviewer?: ReviewProps[] | null;
-  favorites?: any[] | null;
+  items?: Item[] | null;
+  reviews?: Review[] | null;
+  reviewsAsReviewer?: Review[] | null;
+  favorites?: Favorite[] | null;
 
   conversationIds: string[] | null;
   conversations?: ConversationProps[] | null;
@@ -58,12 +63,17 @@ export type UserProps = {
 };
 
 export type ProfileProps = {
+  firstName: string | null;
+  lastName: string | null;
   image: string | null;
-  rating: number;
-  numberOfReviews: number;
+
+  averageRating: number;
+  totalReviews: number;
+
   mobilePhone: string | null;
   bio: string | null;
 };
+
 export type UserProfileProps = {
   id: string;
   createdAt: Date;
@@ -127,8 +137,6 @@ export type UserWalletProps = {
   lastSeen: Date | null;
   profile: {
     image: string | null;
-    rating: number;
-    numberOfReviews: number;
   };
   wallet: WalletProps;
   rentalAsOwner?: { totalPrice: number }[];
@@ -142,8 +150,6 @@ export type UserLocationProps = {
   email?: string;
   profile: {
     image: string | null;
-    rating: number;
-    numberOfReviews: number;
   };
   location: LocationProps | null;
   wallet?: {
@@ -152,6 +158,6 @@ export type UserLocationProps = {
 };
 export type UserConversationProps = UserCardProps & {
   conversationIds: string[];
-  requestedConversation: ConversationProps[];
-  receivedConversation: ConversationProps[];
+  requestedConversation: Conversation[];
+  receivedConversation: Conversation[];
 };

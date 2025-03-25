@@ -10,7 +10,7 @@ export type TransactionProps = {
   updatedAt: Date;
   status: TransactionStatus;
   paymentIntentId: string;
-
+  rentalNumber: string;
   amountEarned: number | null; // montant gagné par le propriétaire
   amountPaid: number | null; // montant payé par le loueur
   amountFee: number | null; // montant des frais de service

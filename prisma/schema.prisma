@@ -20,7 +20,7 @@ model User {
   email                     String          @unique
   hashedPassword            String
 
-  lastSeen                  DateTime?
+  lastSeen                  DateTime?       
   isOnline                  Boolean         @default(false)
   
   profile                   Profile
@@ -32,34 +32,34 @@ model User {
 //Relation avec les autres models
   items                     Item[]
   reviews                   Review[]
-  reviewsAsReviewer         Review[]      @relation("ReviewerRelation")
+  reviewsAsReviewer         Review[]        @relation("ReviewerRelation")
   favorites                 Favorite[]
 
  // Relations avec les conversations
   conversationIds           String[]
-  requestedConversations    Conversation[] @relation("Requesters")
-  receivedConversations     Conversation[] @relation("Receivers")
+  requestedConversations    Conversation[]  @relation("Requesters")
+  receivedConversations     Conversation[]  @relation("Receivers")
 
  // Relations avec les messages
-  sentMessages              Message[]      @relation("UserMessagesSent")
-  receivedMessages          Message[]      @relation("UserMessagesReceived")
+  sentMessages              Message[]       @relation("UserMessagesSent")
+  receivedMessages          Message[]       @relation("UserMessagesReceived")
 
  // Relations avec les rentals
-  rentalAsOwner             Rental[]       @relation("OwnerRelation")
-  rentalAsRenter            Rental[]       @relation("RenterRelation")
+  rentalAsOwner             Rental[]        @relation("OwnerRelation")
+  rentalAsRenter            Rental[]        @relation("RenterRelation")
 
  // Relations avec les notifications
-  notificationsSent         Notification[] @relation("NotificationsSent")
-  notificationsReceived     Notification[] @relation("NotificationsReceived")
+  notificationsSent         Notification[]  @relation("NotificationsSent")
+  notificationsReceived     Notification[]  @relation("NotificationsReceived")
 
  // Relations avec les transactions commandes completées payées 
-  renterTransactions        Transaction[]  @relation("TransactionRenter")
-  ownerTransactions         Transaction[]  @relation("TransactionOwner")
+  renterTransactions        Transaction[]   @relation("TransactionRenter")
+  ownerTransactions         Transaction[]   @relation("TransactionOwner")
    // autres relations
   rewards                   Reward[]
   // sessions                  Session[]
   accounts                  Account[]
-  role                      UserRole       @default(USER)
+  role                      UserRole        @default(USER)
 
 }
 // ---ITEM--- //
@@ -72,7 +72,7 @@ model Item {
   categoryId            String    @db.ObjectId
 
   title                 String
-  picture               Picture[]  // tableau de string pour les images
+  picture               Picture[]  
   price                 Float
   description           String
 
@@ -85,9 +85,9 @@ model Item {
   isPaused              Boolean   @default(false)
   isDeleted             Boolean   @default(false)
 
-  dateUnavailable       DateTime[]
-  dateRenting           DateTime[]
-  dateRequested         DateTime[]
+  dateUnavailable       DateTime[]  
+  dateRenting           DateTime[]  
+  dateRequested         DateTime[]  
 
 // Relations avec d'autres modèles
   owner                 User      @relation(fields: [ownerId], references: [id], onDelete: Cascade)
@@ -102,7 +102,7 @@ model Item {
 model Message {
   id                  String            @id @default(auto()) @map("_id") @db.ObjectId
   // createdAt           DateTime          @default(now())
-  sentAt              DateTime
+  sentAt              DateTime          @default(now())
   timeStamp           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
   isRequest           Boolean           @default(true)
@@ -113,8 +113,6 @@ model Message {
   senderId            String            @db.ObjectId
   recipientId         String            @db.ObjectId
   conversationId      String            @db.ObjectId
-  // toRoomId            String            @db.ObjectId
-  // fromRoomId          String            @db.ObjectId
   isRead              Boolean           @default(false)
   isSeen              Boolean           @default(false)
   // isDeleted           Boolean           @default(false)
@@ -206,10 +204,10 @@ enum UserMatchStatus {
 }
 
 type RentalDates{
-  startDate               DateTime             // date de début prévue
-  endDate                 DateTime             // date de fin prévue
-  dateItemGiven           DateTime?            // date de début réelle
-  dateItemReturned        DateTime?            // date de fin réelle
+  startDate               DateTime             
+  endDate                 DateTime             
+  dateItemGiven           DateTime?            
+  dateItemReturned        DateTime?            
 }
 type RentalDetails{
   pricePerDay             Float                // prix de l'article par jour
@@ -240,8 +238,8 @@ type RentalState{
   isItemReturned      Boolean              @default(false)    // true si retourné, false sinon
   isItemAccepted      Boolean              @default(false)    // true si location acceptée, false sinon
 
-  isActionRequired    Boolean              @default(false)    // true si action requise, false sinon
- 
+  isActionRequired    Boolean              @default(false)  
+
   isItemDeclined      Boolean              @default(false)    // true si location refusée, false sinon
 
   isCompleted         Boolean              @default(false)    // true si terminé, false sinon
@@ -268,18 +266,18 @@ enum RentalStatus {
 model Review {
   id            String      @id @default(auto()) @map("_id") @db.ObjectId
   createdAt     DateTime    @default(now())
-  stars         Int         @default(0) // Nombre d'étoiles données à la revue
-  comment       String?     // Commentaire de la revue
-
-  itemId        String      @db.ObjectId // ID de l'article concerné
-  rentalId      String      @db.ObjectId // ID de la location concernée
-  transactionId String      @db.ObjectId // ID de la transaction concernée
-  reviewerId    String      @db.ObjectId // ID de l'utilisateur évaluateur Author of the review
-  revieweeId    String      @db.ObjectId // ID de l'utilisateur évalué
+  rating        Int         @default(0) // Nombre d'étoiles données à la revue
+  emoji         Json?       // Emoji donné à la revue
+  comment       String?     
+  itemId        String      @db.ObjectId 
+  rentalId      String      @db.ObjectId 
+  transactionId String      @db.ObjectId 
+  reviewerId    String      @db.ObjectId 
+  userId        String      @db.ObjectId 
 
   rental        Rental      @relation(fields: [rentalId], references: [id], onDelete: Cascade)
   reviewer      User        @relation("ReviewerRelation", fields: [reviewerId], references: [id], onDelete: Cascade)
-  reviewee      User        @relation(fields: [revieweeId], references: [id], onDelete: Cascade)
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 // ---TRANSACTION--- //
 model Transaction {
@@ -288,10 +286,7 @@ model Transaction {
   updatedAt           DateTime    @updatedAt
 
   paymentIntentId     String         // L'identifiant de l'intention de paiement
-  // stripeChargeId      String?         // L'identifiant de la charge stripe
-  // stripeTransferId    String?         // L'identifiant du transfert stripe
-  // stripePayoutId      String?         // L'identifiant du paiement stripe
-  // stripeRefundId      String?         // L'identifiant du remboursement stripe
+  rentalNumber        String         // Le numéro de location
 
   status              TransactionStatus
   amountEarned        Float? // montant gagné par le propriétaire
@@ -306,10 +301,10 @@ model Transaction {
   renterId            String      @db.ObjectId
   ownerId             String      @db.ObjectId
 
-  rental            Rental      @relation(fields: [rentalId], references: [id], onDelete: Cascade)
-  item              Item        @relation(fields: [itemId], references: [id], onDelete: Cascade)
-  renter            User        @relation("TransactionRenter", fields: [renterId], references: [id], onDelete: Cascade)
-  owner             User        @relation("TransactionOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  rental            Rental        @relation(fields: [rentalId], references: [id], onDelete: Cascade)
+  item              Item          @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  renter            User          @relation("TransactionRenter", fields: [renterId], references: [id], onDelete: Cascade)
+  owner             User          @relation("TransactionOwner", fields: [ownerId], references: [id], onDelete: Cascade)
 
  }
 enum TransactionStatus {
@@ -385,9 +380,10 @@ type Profile {
   firstName               String
   lastName                String
   image                   String?
-  rating                  Int         @default(0)
-  numberOfReviews         Int         @default(0)
   
+  averageRating           Float   @default(0)
+  totalReviews            Int     @default(0)
+
   mobilePhone             String?
   bio                     String?
 }
@@ -416,7 +412,7 @@ type Verification {
   certified                   Boolean   @default(false)
   emailVerificationCode       String?
   mobileVerificationCode      String?
-  expiresAt                   DateTime?
+  expiresAt                   DateTime? 
 }
 type Wallet{
   balance           Float   @default(0)
@@ -458,7 +454,7 @@ model VerificationCode {
   id                String  @id @default(auto()) @map("_id") @db.ObjectId
   identifier        String
   token             String
-  expiresAt         DateTime
+  expiresAt         DateTime 
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }

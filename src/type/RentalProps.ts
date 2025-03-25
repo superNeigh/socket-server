@@ -1,42 +1,43 @@
+import { RentalStatus, RequestStatus, UserMatchStatus } from "@prisma/client";
 import { ReviewProps } from "./ReviewProps";
 import { RewardProps } from "./RewardProps";
 import { TransactionProps } from "./TransactionProps";
 import { UserCardProps } from "./UserProps";
 
-export enum RequestStatus {
-  SENT = "SENT",
-  ACCEPTED = "ACCEPTED",
-  DECLINED = "DECLINED",
-  CANCELED = "CANCELED",
-  PAID = "PAID",
-}
+// export enum RequestStatus {
+//   SENT = "SENT",
+//   ACCEPTED = "ACCEPTED",
+//   DECLINED = "DECLINED",
+//   CANCELED = "CANCELED",
+//   PAID = "PAID",
+// }
 
-export enum RentalStatus {
-  PENDING = "PENDING",
-  UPCOMING = "UPCOMING",
-  IN_PROGRESS = "IN_PROGRESS",
-  ACTION_REQUIRED = "ACTION_REQUIRED",
-  COMPLETED = "COMPLETED",
-}
+// export enum RentalStatus {
+//   PENDING = "PENDING",
+//   UPCOMING = "UPCOMING",
+//   IN_PROGRESS = "IN_PROGRESS",
+//   ACTION_REQUIRED = "ACTION_REQUIRED",
+//   COMPLETED = "COMPLETED",
+// }
 
-export enum UserMatchStatus {
-  SENT = "SENT",
-  ACCEPTED = "ACCEPTED",
-  DECLINED = "DECLINED",
-  CANCELED = "CANCELED",
-  PAID = "PAID",
-  PENDING = "PENDING",
-  COMPLETED = "COMPLETED",
-  ITEM_GIVEN = "ITEM_GIVEN",
-  ITEM_NOT_GIVEN = "ITEM_NOT_GIVEN",
-  ITEM_RECEIVED = "ITEM_RECEIVED",
-  ITEM_NOT_RECEIVED = "ITEM_NOT_RECEIVED",
-  ITEM_IN_PROGRESS = "ITEM_IN_PROGRESS",
-  ITEM_RETURNED = "ITEM_RETURNED",
-  ITEM_NOT_RETURNED = "ITEM_NOT_RETURNED",
-  ITEM_ACCEPTED = "ITEM_ACCEPTED",
-  ITEM_DECLINED = "ITEM_DECLINED",
-}
+// export enum UserMatchStatus {
+//   SENT = "SENT",
+//   ACCEPTED = "ACCEPTED",
+//   DECLINED = "DECLINED",
+//   CANCELED = "CANCELED",
+//   PAID = "PAID",
+//   PENDING = "PENDING",
+//   COMPLETED = "COMPLETED",
+//   ITEM_GIVEN = "ITEM_GIVEN",
+//   ITEM_NOT_GIVEN = "ITEM_NOT_GIVEN",
+//   ITEM_RECEIVED = "ITEM_RECEIVED",
+//   ITEM_NOT_RECEIVED = "ITEM_NOT_RECEIVED",
+//   ITEM_IN_PROGRESS = "ITEM_IN_PROGRESS",
+//   ITEM_RETURNED = "ITEM_RETURNED",
+//   ITEM_NOT_RETURNED = "ITEM_NOT_RETURNED",
+//   ITEM_ACCEPTED = "ITEM_ACCEPTED",
+//   ITEM_DECLINED = "ITEM_DECLINED",
+// }
 
 // *** Rental Request Props ***
 export type RentalRequestProps = {
@@ -115,6 +116,7 @@ export type RequestStateProps = {
   isAccepted: boolean;
   isCanceled: boolean;
   isDeclined: boolean;
+  isActionRequired: boolean;
   isPaid: boolean;
   isDiscounted: boolean;
 };
